@@ -142,7 +142,13 @@ AST_T* parser_parse_function_definition(parser_T* parser)
 {
 	AST_T* ast = init_ast(AST_FUNCTION_DEFINITION);
 	parser_eat(parser, TOKEN_ID); // ԳՈՐԾԱՌՈՒՅԹ
+
 	char* function_name = parser->current_token->value;
+	ast->function_definition_name = calloc(
+		strlen(function_name) + 1, sizeof(char)
+	);
+	strcpy(ast->function_definition_name, function_name);
+	
 	parser_eat(parser, TOKEN_ID);
 	parser_eat(parser, TOKEN_LPAREN);
 	parser_eat(parser, TOKEN_RPAREN);
