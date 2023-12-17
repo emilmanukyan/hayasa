@@ -71,7 +71,9 @@ AST_T* visitor_visit_variable_definition(visitor_T* visitor, AST_T* node)
 
 AST_T* visitor_visit_function_definition(visitor_T* visitor, AST_T* node)
 {
-	
+	printf("We found the function definition %s\n", node->function_definition_name);
+
+	return node;
 }
 
 AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
