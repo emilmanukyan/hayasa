@@ -1,4 +1,4 @@
-exec = hayasa.out
+exec = hayasa
 sources = $(wildcard src/*.c)
 objects = $(sources:.c=.o)
 flags = -g
@@ -11,9 +11,8 @@ $(exec): $(objects)
 
 install:
 	make
-	cp ./hayasa.out /usr/local/bin/hayasa
+	cp ./hayasa /usr/local/bin/hayasa
 
 clean:
-	-rm *.out
-	#-rm *.o
+	-rm hayasa
 	-rm src/*.o
