@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "include/lexer.h"
 #include "include/parser.h"
 #include "include/visitor.h"
@@ -6,7 +7,7 @@
 
 void print_help()
 {
-	printf("Usage:\nhayasa.out <filepath>\n");
+	printf("======= ՕԳՆՈՒԹՅՈՒՆ =======\nhayasa.out «filepath/file.hy»\n");
 	exit(1);
 }
 
@@ -14,7 +15,8 @@ int main(int argc, char* argv[])
 {
 	if (argc < 2)
 		print_help();
-	
+	if (argv[1][strlen(argv[1]) - 1] != 'y' && argv[1][strlen(argv[1]) - 2] != 'h' && argv[1][strlen(argv[1]) - 3] != '.')
+		print_help();
 	lexer_T* lexer = init_lexer(get_file_contents(argv[1]));
 
 	parser_T* parser = init_parser(lexer);

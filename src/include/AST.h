@@ -9,6 +9,7 @@ typedef struct AST_STRUCT
 		AST_FUNCTION_DEFINITION,
 		AST_VARIABLE,
 		AST_FUNCTION_CALL,
+		AST_FUNCTION_RETURN,
 		AST_STRING,
 		AST_COMPOUND,
 		AST_NOOP,
@@ -34,6 +35,9 @@ typedef struct AST_STRUCT
 	struct AST_STRUCT** function_call_arguments;
 	size_t function_call_arguments_size;
 
+	/* AST_FUNCTION_RETURN */
+	struct AST_STRUCT* function_return_expr;
+
 	/* AST_STRING */
 	char* string_value;
 
@@ -43,4 +47,5 @@ typedef struct AST_STRUCT
 } AST_T;
 
 AST_T* init_ast(int type);
+
 #endif

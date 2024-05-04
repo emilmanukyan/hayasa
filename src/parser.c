@@ -1,5 +1,6 @@
 #include "include/parser.h"
 #include "include/scope.h"
+#include "include/lexer.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -17,6 +18,7 @@ parser_T* init_parser(lexer_T* lexer)
 
 void parser_eat(parser_T* parser, int token_type)
 {
+	char *tokens[] = {"ՀԱՅ", "ՎԵՐԱԳՐԻՐ", "\"\"", ";", "<", ">", "ՍԿԻԶԲ", "ԱՎԱՐՏ", ","};
 	if (parser->current_token->type == token_type)
 	{
 		parser->prev_token = parser->current_token;
@@ -24,10 +26,12 @@ void parser_eat(parser_T* parser, int token_type)
 	}
 	else
 	{
+		printf("======= ՍԽԱԼ =======\n");
 		printf(
-			"Unexpected token `%s`, with type %d",
+			"Չսպասված նույնացուցիչ՝ «%s»: Սպասվում է` «%s»:\n",
 			parser->current_token->value,
-			parser->current_token->type
+			tokens[token_type]
+			// parser->current_token->type
 		);
 		exit(1);
 	}
@@ -135,6 +139,11 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
 {
 	parser_eat(parser, TOKEN_ID); // ՀԱՅ
 	char* variable_definition_variable_name = parser->current_token->value;
+	if (variable_definition_variable_name[0] >= '0' && variable_definition_variable_name[0] <= '9')
+	{	
+		printf("Փոփոխականի սխալ անվանում՝ «%s»\n", variable_definition_variable_name); 
+		exit(1);
+	}
 	parser_eat(parser, TOKEN_ID); // ՀԱՅ անուն
 	parser_eat(parser, TOKEN_EQUALS);
 	AST_T* variable_definition_value = parser_parse_expr(parser, scope);
@@ -158,31 +167,37 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 		strlen(function_name) + 1, sizeof(char)
 	);
 	strcpy(ast->function_definition_name, function_name);
-	
+	if (function_name[0] >= '0' && function_name[0] <= '9')
+	{	
+		printf("Գործառույթի սխալ անվանում՝ «%s»\n", function_name); 
+		exit(1);
+	}
 	parser_eat(parser, TOKEN_ID);
 
 	parser_eat(parser, TOKEN_LPAREN);
-
-	ast->function_definition_args = calloc(1, sizeof(struct AST_STRUCT*));	
-	
-	AST_T* arg = parser_parse_variable(parser, scope);
-	ast->function_definition_args_size += 1;
-	ast->function_definition_args[ast->function_definition_args_size - 1] = arg;
-	
-	//parser_eat(parser, TOKEN_COMMA);
-	while(parser->current_token->type == TOKEN_COMMA)
+	if (parser->current_token->type != TOKEN_RPAREN)
 	{
-		parser_eat(parser, TOKEN_COMMA);
-		ast->function_definition_args_size += 1;
-
-		ast->function_definition_args =
-			realloc(
-				ast->function_definition_args,
-				ast->function_definition_args_size * sizeof(struct AST_STRUCT*)
-			);
-
+		ast->function_definition_args = calloc(1, sizeof(struct AST_STRUCT*));	
+		
 		AST_T* arg = parser_parse_variable(parser, scope);
+		ast->function_definition_args_size += 1;
 		ast->function_definition_args[ast->function_definition_args_size - 1] = arg;
+		
+		// parser_eat(parser, TOKEN_COMMA);
+		while(parser->current_token->type == TOKEN_COMMA)
+		{
+			parser_eat(parser, TOKEN_COMMA);
+			ast->function_definition_args_size += 1;
+
+			ast->function_definition_args =
+				realloc(
+					ast->function_definition_args,
+					ast->function_definition_args_size * sizeof(struct AST_STRUCT*)
+				);
+
+			AST_T* arg = parser_parse_variable(parser, scope);
+			ast->function_definition_args[ast->function_definition_args_size - 1] = arg;
+		}
 	}
 
 	parser_eat(parser, TOKEN_RPAREN);
@@ -197,6 +212,20 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 
 	return ast;
 }
+
+AST_T* parser_parse_function_return(parser_T* parser, scope_T* scope)
+{
+    parser_eat(parser, TOKEN_ID); // ՎԵՐԱԴԱՐՁՐՈՒ
+    AST_T* expr = parser_parse_expr(parser, scope);
+
+    AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
+    function_return->function_return_expr = expr;
+    
+    function_return->scope = scope;
+
+    return function_return;
+}
+
 
 AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
 {
@@ -235,6 +264,10 @@ AST_T* parser_parse_id(parser_T* parser, scope_T* scope)
 	else if (strcmp(parser->current_token->value, "ԳՈՐԾԱՌՈՒՅԹ") == 0)
 	{
 		return parser_parse_function_definition(parser, scope);	
+	}
+	else if (strcmp(parser->current_token->value, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
+	{
+		return parser_parse_function_return(parser, scope);
 	}
 	else
 	{

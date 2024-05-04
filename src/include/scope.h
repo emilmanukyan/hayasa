@@ -4,6 +4,7 @@
 
 typedef struct SCOPE_STRUCT
 {
+	struct SCOPE_STRUCT* parent;
 	AST_T** function_definitions;
 	size_t function_definitions_size;
 

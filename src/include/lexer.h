@@ -1,11 +1,12 @@
 #ifndef LEXER_H
 #define LEXER_H
 #include "token.h"
-
+#include <stdbool.h>
+#include <wchar.h>
 
 typedef struct LEXER_STRUCT
 {
-	char c;
+	wchar_t c;
 	unsigned int i;
 	char* contents;
 } lexer_T;
@@ -25,4 +26,7 @@ token_T* lexer_collect_id(lexer_T* lexer);
 token_T* lexer_advance_with_token(lexer_T* lexer, token_T* token);
 
 char* lexer_get_current_char_as_string(lexer_T* lexer);
+
+bool isArmenianAndNumeric(wchar_t ch);
+
 #endif
