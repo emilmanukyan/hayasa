@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <locale.h>
+#include <wctype.h>
 
 lexer_T* init_lexer(char* contents)
 {
@@ -12,17 +13,33 @@ lexer_T* init_lexer(char* contents)
 	lexer->contents = contents;
 	lexer->i = 0;
 	lexer->c = contents[lexer->i];
+	lexer->line = 1;
+	lexer->column = 1;
 
 	return lexer;
 }
 
 void lexer_advance(lexer_T* lexer)
 {
-	if(lexer->c != '\0' && lexer->i < strlen(lexer->contents))
-	{
-		lexer->i += 1;
-		lexer->c = lexer->contents[lexer->i];
-	}
+    if (lexer->c != '\0' && lexer->i < strlen(lexer->contents))
+    {
+        lexer->i += 1;
+        lexer->c = lexer->contents[lexer->i];
+        if (lexer->c == '\n' || lexer->c == '\r')
+        {
+            lexer->line++;
+            lexer->column = 1;
+            lexer->isArmenian = 0;
+        }
+        else
+        {
+        	if (lexer->c == '\t')
+        	{
+        		lexer->column += 4;
+        	}
+            lexer->column += 1;
+        }
+    }
 }
 
 void lexer_skip_whitespace(lexer_T* lexer)
@@ -35,30 +52,15 @@ void lexer_skip_whitespace(lexer_T* lexer)
 
 bool isArmenianAndNumeric(wchar_t ch)
 {
-
-	const char* set = "0123456789ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔևՕՖաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆ";
+	const char* set = "«»0123456789ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔևՕՖաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆ";
 	
 	if (strchr(set, ch) != NULL)
 		return true;
 	return false;
 }
 
-// int isArmenianAndNumeric(wchar_t ch)
-// {
-//     setlocale(LC_CTYPE, "en_US.UTF-8");
-
-//     wchar_t* set = L"0123456789ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔևՕՖաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆ";
-    
-//     if (wcschr(set, ch) != NULL)
-//     	return 0;
-//     return 1;
-// }
-
 token_T* lexer_get_next_token(lexer_T* lexer)
 {
-	// setlocale(LC_ALL, "");
-
-	int space_count = 0;
 	while (lexer->c != '\0' && lexer->i < strlen(lexer->contents))
 	{
 		if (lexer->c == ' ' || lexer->c == 10 || lexer->c == 9)
@@ -73,9 +75,12 @@ token_T* lexer_get_next_token(lexer_T* lexer)
 		switch (lexer->c)
 		{
 			case L';': return lexer_advance_with_token(lexer, init_token(TOKEN_ENDPOINT, lexer_get_current_char_as_string(lexer))); break;
-			case L'<': return lexer_advance_with_token(lexer, init_token(TOKEN_LPAREN, lexer_get_current_char_as_string(lexer))); break;
-			case L'>': return lexer_advance_with_token(lexer, init_token(TOKEN_RPAREN, lexer_get_current_char_as_string(lexer))); break;
 			case L',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer))); break;
+			default:
+				printf("======= ՍԽԱԼ =======\n");
+				printf("Անհայտ սիմվոլ՝ « %c »\n", lexer->c);
+				printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", lexer->line, lexer->column - (lexer->isArmenian / 2));
+				exit(1);
 		}
 	}
 
@@ -95,10 +100,9 @@ token_T* lexer_collect_string(lexer_T* lexer)
 		char* s = lexer_get_current_char_as_string(lexer);
 		value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(wchar_t));
 		strcat(value, s);
-
 		lexer_advance(lexer);
+		lexer->isArmenian++;
 	}
-
 	lexer_advance(lexer);
 
 	return init_token(TOKEN_STRING, value);
@@ -116,8 +120,8 @@ token_T* lexer_collect_id(lexer_T* lexer)
 		s = lexer_get_current_char_as_string(lexer);
 		value = realloc(value, (strlen(value) + strlen(s) + 1) * sizeof(wchar_t));
 		strcat(value, s);
-				
 		lexer_advance(lexer);
+		lexer->isArmenian++;
 	}
 	
 	if (strcmp(value, "ՎԵՐԱԳՐԻՐ") == 0)
@@ -126,7 +130,11 @@ token_T* lexer_collect_id(lexer_T* lexer)
 	 	return init_token(TOKEN_LBRACE, value);
 	else if (strcmp(value, "ԱՎԱՐՏ") == 0)
 	 	return init_token(TOKEN_RBRACE, value);
-	
+	else if (strcmp(value, "«") == 0)
+		return init_token(TOKEN_LPAREN, value);
+	else if (strcmp(value, "»") == 0)
+		return init_token(TOKEN_RPAREN, value);	
+
 	return init_token(TOKEN_ID, value);
 }
 

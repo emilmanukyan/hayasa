@@ -9,6 +9,9 @@ typedef struct LEXER_STRUCT
 	wchar_t c;
 	unsigned int i;
 	char* contents;
+	unsigned int line;
+	unsigned int column;
+	unsigned int isArmenian;
 } lexer_T;
 
 lexer_T* init_lexer(char* contents);

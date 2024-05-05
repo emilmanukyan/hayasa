@@ -7,7 +7,7 @@
 
 void print_help()
 {
-	printf("======= ՕԳՆՈՒԹՅՈՒՆ =======\nhayasa.out «filepath/file.hy»\n");
+	printf("======= ՕԳՆՈՒԹՅՈՒՆ =======\n./hayasa ՝filepath/file.hy՝\n");
 	exit(1);
 }
 

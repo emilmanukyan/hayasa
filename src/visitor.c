@@ -9,6 +9,13 @@ static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_
 	{
 		AST_T* visited_ast = visitor_visit(visitor, args[i]);
 
+		if (visited_ast->string_value == NULL)
+		{
+			printf("======= ՍԽԱԼ =======\n");
+	        printf("« ՏՊԻՐ » անունով գործառույթի սխալ արգումենտների քանակ:\n");
+			// printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", visitor->lexer->line, visitor->lexer->column - (visitor->lexer->isArmenian / 2));
+	        exit(1);
+		}
 		switch(visited_ast->type)
 		{
 			case AST_STRING: printf("%s", visited_ast->string_value); break;
@@ -20,10 +27,16 @@ static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_
 
 static AST_T* builtin_function_printl(visitor_T* visitor, AST_T** args, int args_size)
 {
-	// printf("%s\n", );
 	for (int i = 0; i < args_size; i++)
 	{
 		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		
+		if (visited_ast->string_value == NULL)
+		{
+			printf("======= ՍԽԱԼ =======\n");
+	        printf("« ՏՊԻՐՏՈՂ » անունով գործառույթի սխալ արգումենտների քանակ:\n");
+	        exit(1);
+		}
 		switch(visited_ast->type)
 		{
 			case AST_STRING: printf("%s", visited_ast->string_value); break;
@@ -40,6 +53,12 @@ static AST_T* builtin_function_printnl(visitor_T* visitor, AST_T** args, int arg
 	{
 		AST_T* visited_ast = visitor_visit(visitor, args[i]);
 
+		if (visited_ast->string_value == NULL)
+		{
+			printf("======= ՍԽԱԼ =======\n");
+	        printf("« ՏՊԻՐՆՏՈՂ » անունով գործառույթի սխալ արգումենտների քանակ:\n");
+	        exit(1);
+		}
 		switch(visited_ast->type)
 		{
 			case AST_STRING: printf("%s\n", visited_ast->string_value); break;
@@ -71,9 +90,8 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
 		case AST_NOOP: return node; break;
 	}
 
-	//printf("Uncaught statement of type `%d`\n", node->type);
 	printf("======= ՍԽԱԼ =======\n");
-	printf("«%d» տիպին պատկանող անհայտ օպերատոր:\n", node->type);
+	printf("« %d » տիպին պատկանող անհայտ օպերատոր:\n", node->type);
 	exit(1);
 	
 	return init_ast(AST_NOOP);
@@ -120,7 +138,7 @@ AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
     }
 
     printf("======= ՍԽԱԼ =======\n");
-    printf("Անհայտ փոփոխական` «%s» անունով:\n", node->variable_name);
+    printf("Անհայտ փոփոխական` « %s » անունով:\n", node->variable_name);
     exit(1);
 }
 
@@ -151,7 +169,7 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
     if (fdef == NULL)
     {
         printf("======= ՍԽԱԼ =======\n");
-        printf("Անհայտ գործառույթ` «%s» անունով:\n", node->function_call_name);
+        printf("Անհայտ գործառույթ` « %s » անունով:\n", node->function_call_name);
         exit(1);
     }
 
@@ -163,19 +181,17 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
         if (fdef->function_definition_args_size != node->function_call_arguments_size)
         {
             printf("======= ՍԽԱԼ =======\n");
-            printf("«%s» անունով գործառույթի սխալ արգումենտների քանակ:\n", node->function_call_name);
+            printf("« %s » անունով գործառույթի սխալ արգումենտների քանակ:\n", node->function_call_name);
             exit(1);
         }
         for (int i = 0; i < (int)fdef->function_definition_args_size; i++)
         {
-            // Get the variable from the function definition
             AST_T* ast_var = (AST_T*)fdef->function_definition_args[i];
 
-            // Get the value of the argument passed to the function
             AST_T* ast_value = (AST_T*)node->function_call_arguments[i];
 
-            // Create a new variable definition with the argument value
             AST_T* ast_vardef = init_ast(AST_VARIABLE_DEFINITION);
+
             ast_vardef->variable_definition_value = ast_value;
             ast_vardef->variable_definition_variable_name = (char*)calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
             strcpy(ast_vardef->variable_definition_variable_name, ast_var->variable_name);

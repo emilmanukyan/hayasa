@@ -18,7 +18,8 @@ parser_T* init_parser(lexer_T* lexer)
 
 void parser_eat(parser_T* parser, int token_type)
 {
-	char *tokens[] = {"ՀԱՅ", "ՎԵՐԱԳՐԻՐ", "\"\"", ";", "<", ">", "ՍԿԻԶԲ", "ԱՎԱՐՏ", ","};
+	char *tokens[] = {"ՀԱՅ", "ՎԵՐԱԳՐԻՐ", "\"\"", ";", "«", "»", "ՍԿԻԶԲ", "ԱՎԱՐՏ", ","};
+	// printf("%s\n", parser->current_token->value);
 	if (parser->current_token->type == token_type)
 	{
 		parser->prev_token = parser->current_token;
@@ -28,11 +29,11 @@ void parser_eat(parser_T* parser, int token_type)
 	{
 		printf("======= ՍԽԱԼ =======\n");
 		printf(
-			"Չսպասված նույնացուցիչ՝ «%s»: Սպասվում է` «%s»:\n",
+			"Չսպասված նույնացուցիչ՝ « %s »: Սպասվում է` « %s »:\n",
 			parser->current_token->value,
 			tokens[token_type]
-			// parser->current_token->type
 		);
+		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
 }
@@ -47,6 +48,7 @@ AST_T* parser_parse_statement(parser_T* parser, scope_T* scope)
 	switch(parser->current_token->type)
 	{
 		case TOKEN_ID: return parser_parse_id(parser, scope);
+		// default: printf("here we go again\n");
 	}
 
 	return init_ast(AST_NOOP);
@@ -62,7 +64,6 @@ AST_T* parser_parse_statements(parser_T* parser, scope_T* scope)
 	ast_statement->scope = scope;
 	compound->compound_value[0] = ast_statement;
 	compound->compound_size += 1;
-
 	while (parser->current_token->type == TOKEN_ENDPOINT)
 	{
 		parser_eat(parser, TOKEN_ENDPOINT);
@@ -87,6 +88,7 @@ AST_T* parser_parse_expr(parser_T* parser, scope_T* scope)
 	{
 		case TOKEN_STRING: return parser_parse_string(parser, scope);
 		case TOKEN_ID: return parser_parse_id(parser, scope);
+		// default: printf("here we go again\n");
 	}
 
 	return init_ast(AST_NOOP);
@@ -140,8 +142,10 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
 	parser_eat(parser, TOKEN_ID); // ՀԱՅ
 	char* variable_definition_variable_name = parser->current_token->value;
 	if (variable_definition_variable_name[0] >= '0' && variable_definition_variable_name[0] <= '9')
-	{	
-		printf("Փոփոխականի սխալ անվանում՝ «%s»\n", variable_definition_variable_name); 
+	{
+		printf("======= ՍԽԱԼ =======\n");
+		printf("Փոփոխականի սխալ անվանում՝ « %s »\n", variable_definition_variable_name); 
+		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
 	parser_eat(parser, TOKEN_ID); // ՀԱՅ անուն
@@ -168,8 +172,10 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 	);
 	strcpy(ast->function_definition_name, function_name);
 	if (function_name[0] >= '0' && function_name[0] <= '9')
-	{	
-		printf("Գործառույթի սխալ անվանում՝ «%s»\n", function_name); 
+	{
+		printf("======= ՍԽԱԼ =======\n");
+		printf("Գործառույթի սխալ անվանում՝ « %s »\n", function_name); 
+		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
 	parser_eat(parser, TOKEN_ID);

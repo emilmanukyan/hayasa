@@ -2,6 +2,7 @@
 #define VISITOR_H
 #include "AST.h"
 #include "scope.h"
+#include "lexer.h"
 
 typedef struct VISITOR_STRUCT
 {
