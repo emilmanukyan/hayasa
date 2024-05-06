@@ -3,6 +3,7 @@
 #include "include/lexer.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 parser_T* init_parser(lexer_T* lexer)
 {
@@ -27,9 +28,9 @@ void parser_eat(parser_T* parser, int token_type)
 	}
 	else
 	{
-		printf("======= ՍԽԱԼ =======\n");
+		printf("\n======= ՍԽԱԼ =======\n");
 		printf(
-			"Չսպասված նույնացուցիչ՝ « %s »: Սպասվում է` « %s »:\n",
+			"Չսպասված նույնացուցիչ `%s`: Սպասվում է `%s`:\n",
 			parser->current_token->value,
 			tokens[token_type]
 		);
@@ -87,8 +88,9 @@ AST_T* parser_parse_expr(parser_T* parser, scope_T* scope)
 	switch (parser->current_token->type)
 	{
 		case TOKEN_STRING: return parser_parse_string(parser, scope);
+        case TOKEN_NUMBER: return parser_parse_number(parser, scope);
 		case TOKEN_ID: return parser_parse_id(parser, scope);
-		// default: printf("here we go again\n");
+		// default: printf("%d\n", parser->current_token->type);
 	}
 
 	return init_ast(AST_NOOP);
@@ -127,7 +129,7 @@ AST_T* parser_parse_function_call(parser_T* parser, scope_T* scope)
 			function_call->function_call_arguments,
 			function_call->function_call_arguments_size * sizeof(struct AST_STRUCT*)
 		);
-		function_call->function_call_arguments[function_call->function_call_arguments_size-1] = ast_expr;
+		function_call->function_call_arguments[function_call->function_call_arguments_size - 1] = ast_expr;
 	}
 
 	parser_eat(parser, TOKEN_RPAREN);
@@ -143,8 +145,8 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
 	char* variable_definition_variable_name = parser->current_token->value;
 	if (variable_definition_variable_name[0] >= '0' && variable_definition_variable_name[0] <= '9')
 	{
-		printf("======= ՍԽԱԼ =======\n");
-		printf("Փոփոխականի սխալ անվանում՝ « %s »\n", variable_definition_variable_name); 
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("Փոփոխականի սխալ անվանում `%s`\n", variable_definition_variable_name); 
 		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
@@ -173,8 +175,8 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 	strcpy(ast->function_definition_name, function_name);
 	if (function_name[0] >= '0' && function_name[0] <= '9')
 	{
-		printf("======= ՍԽԱԼ =======\n");
-		printf("Գործառույթի սխալ անվանում՝ « %s »\n", function_name); 
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("Գործառույթի սխալ անվանում ՝%s`\n", function_name); 
 		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
@@ -259,6 +261,15 @@ AST_T* parser_parse_string(parser_T* parser, scope_T* scope)
 	ast_string->scope = scope;
 
 	return ast_string;
+}
+
+AST_T* parser_parse_number(parser_T* parser, scope_T* scope)
+{
+	AST_T* ast_number = init_ast(AST_NUMBER);
+	ast_number->number_value = atol(parser->current_token->value);
+    parser_eat(parser, TOKEN_NUMBER);
+    
+    return ast_number;
 }
 
 AST_T* parser_parse_id(parser_T* parser, scope_T* scope)

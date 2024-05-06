@@ -11,6 +11,7 @@ typedef struct AST_STRUCT
 		AST_FUNCTION_CALL,
 		AST_FUNCTION_RETURN,
 		AST_STRING,
+		AST_NUMBER,
 		AST_COMPOUND,
 		AST_NOOP,
 	} type;
@@ -40,6 +41,9 @@ typedef struct AST_STRUCT
 
 	/* AST_STRING */
 	char* string_value;
+
+	/* AST_NUMBER */
+	long number_value;
 
 	/* AST_COMPOUND */
 	struct AST_STRUCT** compound_value;

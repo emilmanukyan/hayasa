@@ -25,5 +25,7 @@ AST_T* visitor_visit_function_return(visitor_T* visitor, AST_T* node);
 
 AST_T* visitor_visit_string(visitor_T* visitor, AST_T* node);
 
+AST_T* visitor_visit_number(visitor_T* visitor, AST_T* node);
+
 AST_T* visitor_visit_compound(visitor_T* visitor, AST_T* node);
 #endif
