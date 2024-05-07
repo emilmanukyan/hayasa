@@ -22,4 +22,8 @@ AST_T* scope_add_variable_definition(scope_T* scope, AST_T* vdef);
 
 AST_T* scope_get_variable_definition(scope_T* scope, const char* name);
 
+bool scope_check_variable(scope_T* scope, char* variable_name);
+
+bool scope_check_function(scope_T* scope, char* function_name);
+
 #endif

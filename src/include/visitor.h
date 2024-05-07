@@ -27,5 +27,11 @@ AST_T* visitor_visit_string(visitor_T* visitor, AST_T* node);
 
 AST_T* visitor_visit_number(visitor_T* visitor, AST_T* node);
 
+AST_T* visitor_visit_boolean(visitor_T* visitor, AST_T* node);
+
+AST_T* visitor_visit_condition(visitor_T* visitor, AST_T* node);
+
+AST_T* visitor_visit_equality(visitor_T* visitor, AST_T* node);
+
 AST_T* visitor_visit_compound(visitor_T* visitor, AST_T* node);
 #endif

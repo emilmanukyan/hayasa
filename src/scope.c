@@ -79,7 +79,6 @@ AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
     for (int i = 0; i < scope->variable_definitions_size; i++)
     {
         AST_T* vdef = scope->variable_definitions[i];
-        // printf("%s\n", vdef->variable_definition_variable_name);
         if (strcmp(vdef->variable_definition_variable_name, name) == 0)
         {
             return vdef;
@@ -87,4 +86,36 @@ AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
     }
 
     return (void*)0;
+}
+
+bool scope_check_variable(scope_T* scope, char* variable_name)
+{
+    if (scope == NULL)
+        return false;
+
+    for (int i = 0; i < scope->variable_definitions_size; i++)
+    {
+        AST_T* vdef = scope->variable_definitions[i];
+        if (strcmp(vdef->variable_definition_variable_name, variable_name) == 0){
+            return true;
+        }
+    }
+
+    return scope_check_variable(scope->parent, variable_name);
+}
+
+bool scope_check_function(scope_T* scope, char* function_name)
+{
+    if (scope == NULL)
+        return false;
+
+    for (int i = 0; i < scope->function_definitions_size; i++)
+    {
+        AST_T* fdef = scope->function_definitions[i];
+        if (strcmp(fdef->function_definition_name, function_name) == 0){
+            return true;
+        }
+    }
+
+    return scope_check_function(scope->parent, function_name);
 }

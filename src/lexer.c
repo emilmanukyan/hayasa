@@ -61,9 +61,27 @@ bool isArmenianAndNumeric(wchar_t ch)
 
 bool isComment(wchar_t ch)
 {
-	const char* set = "―";
+	const char* lineCom = "―";
 
-	if (strchr(set, ch) != NULL)
+	if (strchr(lineCom, ch) != NULL)
+		return true;
+	return false;
+}
+
+bool isMultiCommentStart(wchar_t ch)
+{
+	const char* multilineCom = "/";
+
+	if (strchr(multilineCom, ch) != NULL)
+		return true;
+	return false;
+}
+
+bool isMultiCommentEnd(wchar_t ch)
+{
+	const char* multilineCom = "/";
+
+	if (strchr(multilineCom, ch) != NULL)
 		return true;
 	return false;
 }
@@ -79,9 +97,29 @@ void lexer_collect_comment(lexer_T* lexer)
 {
 	if (isComment(lexer->c))
 		lexer_advance(lexer);
-	while(!isComment(lexer->c) && lexer->c != '\0' && lexer->c != '\n'){
+	while(lexer->c != '\0' && lexer->c != '\n')
+		lexer_advance(lexer);
+}
+
+void lexer_collect_multiline_comment(lexer_T* lexer)
+{
+	int i, j;
+	if (isMultiCommentStart(lexer->c))
+	{
+		i = lexer->line;
+		j = lexer->column;
 		lexer_advance(lexer);
 	}
+	while(!isMultiCommentEnd(lexer->c) && lexer->c != '\0')
+        lexer_advance(lexer);
+	if (lexer->c == '\0')
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+        printf("Անավարտ բազմատող մեկնաբանություն:\nՍպասվում է « / »\n");
+        printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", i, j);
+        exit(1);
+    }
+    lexer_advance(lexer);
 }
 
 token_T* lexer_get_next_token(lexer_T* lexer)
@@ -97,12 +135,17 @@ token_T* lexer_get_next_token(lexer_T* lexer)
 			continue;
 		}
 
+		if (isMultiCommentStart(lexer->c))
+		{
+			lexer_collect_multiline_comment(lexer);
+			continue;
+		}
+
 		if (isArmenianAndNumeric(lexer->c))
 			return lexer_collect_id(lexer);
 
 		if (lexer->c == '"')
 			return lexer_collect_string(lexer);
-
 
 		if (isNumeric(lexer->c))
 			return lexer_collect_number(lexer);
@@ -110,7 +153,6 @@ token_T* lexer_get_next_token(lexer_T* lexer)
 		switch (lexer->c)
 		{
 			case L';': return lexer_advance_with_token(lexer, init_token(TOKEN_ENDPOINT, lexer_get_current_char_as_string(lexer))); break;
-			case L',': return lexer_advance_with_token(lexer, init_token(TOKEN_COMMA, lexer_get_current_char_as_string(lexer))); break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
 				printf("Անհայտ սիմվոլ `%c`\n", lexer->c);
@@ -186,7 +228,21 @@ token_T* lexer_collect_id(lexer_T* lexer)
 	else if (strcmp(value, "«") == 0)
 		return init_token(TOKEN_LPAREN, value);
 	else if (strcmp(value, "»") == 0)
-		return init_token(TOKEN_RPAREN, value);	
+		return init_token(TOKEN_RPAREN, value);
+	else if (strcmp(value, "և") == 0)
+		return init_token(TOKEN_COMMA, value);
+	else if (strcmp(value, "ԵԹԵ") == 0)
+		return init_token(TOKEN_IF, value);
+	else if (strcmp(value, "ԱՊԱ") == 0)
+		return init_token(TOKEN_THEN, value);
+	else if (strcmp(value, "ԱՅԼԱՊԵՍ") == 0)
+		return init_token(TOKEN_ELSE, value);
+	else if (strcmp(value, "ՃՇՄԱՐԻՏ") == 0)
+		return init_token(TOKEN_BOOL, value);
+	else if (strcmp(value, "ԿԵՂԾ") == 0)
+		return init_token(TOKEN_BOOL, value);
+	else if (strcmp(value, "ՀԱՎԱՍԱՐ") == 0)
+		return init_token(TOKEN_EQUALITY, value);
 
 	return init_token(TOKEN_ID, value);
 }

@@ -18,7 +18,12 @@ AST_T* init_ast(int type)
 	ast->function_definition_args_size = 0;
 
 	/* AST_VARIABLE */
-	ast->variable_name = (void*) 0;
+	ast->variable_name = NULL;
+
+
+	/* AST_VARIABLE_REASSIGNMENT */
+	ast->variable_reassignment_name = (void*) 0;
+	ast->variable_reassignment_value = (void*) 0;
 
 	/* AST_FUNCTION_CALL */
 	ast->function_call_name = (void*) 0;
@@ -33,7 +38,12 @@ AST_T* init_ast(int type)
 	ast->string_value = (void*) 0;
 
 	/* AST_NUMBER */
-	ast->number_value = -1;
+	ast->number_value = 0;
+
+	/* AST_CONDITIONAL */
+	ast->conditional_condition = (void*) 0;
+	ast->conditional_consequence = (void*) 0;
+	ast->conditional_alternative = (void*) 0;
 
 	/* AST_COMPOUND */
 	ast->compound_value = (void*) 0;

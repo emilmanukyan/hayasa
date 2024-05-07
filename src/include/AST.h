@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct AST_STRUCT
 {
@@ -8,10 +9,14 @@ typedef struct AST_STRUCT
 		AST_VARIABLE_DEFINITION,
 		AST_FUNCTION_DEFINITION,
 		AST_VARIABLE,
+		AST_VARIABLE_REASSIGNMENT,
 		AST_FUNCTION_CALL,
 		AST_FUNCTION_RETURN,
 		AST_STRING,
 		AST_NUMBER,
+		AST_BOOL,
+		AST_CONDITIONAL,
+		AST_EQUALITY,
 		AST_COMPOUND,
 		AST_NOOP,
 	} type;
@@ -31,6 +36,10 @@ typedef struct AST_STRUCT
 	/* AST_VARIABLE */
 	char* variable_name;
 
+	/* AST_VARIABLE_REASSIGNMENT */
+	char* variable_reassignment_name;
+	struct AST_STRUCT* variable_reassignment_value;
+
 	/* AST_FUNCTION_CALL */
 	char* function_call_name;
 	struct AST_STRUCT** function_call_arguments;
@@ -44,6 +53,14 @@ typedef struct AST_STRUCT
 
 	/* AST_NUMBER */
 	long number_value;
+
+	/* AST_BOOL */
+	bool bool_value;
+
+	/* AST_CONDITIONAL */
+	struct AST_STRUCT* conditional_condition;
+	struct AST_STRUCT* conditional_consequence;
+	struct AST_STRUCT* conditional_alternative;
 
 	/* AST_COMPOUND */
 	struct AST_STRUCT** compound_value;
