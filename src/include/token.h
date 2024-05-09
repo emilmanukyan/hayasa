@@ -18,7 +18,6 @@ typedef struct TOKEN_STRUCT
 		TOKEN_THEN,
 		TOKEN_ELSE,
 		TOKEN_BOOL,
-		TOKEN_EQUALITY,
 		TOKEN_EOF,
 	} type;
 

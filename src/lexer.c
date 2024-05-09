@@ -241,8 +241,6 @@ token_T* lexer_collect_id(lexer_T* lexer)
 		return init_token(TOKEN_BOOL, value);
 	else if (strcmp(value, "ԿԵՂԾ") == 0)
 		return init_token(TOKEN_BOOL, value);
-	else if (strcmp(value, "ՀԱՎԱՍԱՐ") == 0)
-		return init_token(TOKEN_EQUALITY, value);
 
 	return init_token(TOKEN_ID, value);
 }

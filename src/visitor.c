@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+// Տպելու գործողություններ
+
 static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_size)
 {
 	for (int i = 0; i < args_size; i++)
@@ -13,7 +15,11 @@ static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_
 		{
 			case AST_STRING: printf("%s", visited_ast->string_value); break;
 			case AST_NUMBER: printf("%ld", visited_ast->number_value); break;
-			case AST_BOOL: printf("%s", visited_ast->string_value); break;
+			case AST_BOOL:
+				if (visited_ast->bool_value == true) visited_ast->string_value = "ՃՇՄԱՐԻՏ";
+				else visited_ast->string_value = "ԿԵՂԾ";
+				printf("%s", visited_ast->string_value);
+				break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -29,12 +35,24 @@ static AST_T* builtin_function_printl(visitor_T* visitor, AST_T** args, int args
 	for (int i = 0; i < args_size; i++)
 	{
 		AST_T* visited_ast = visitor_visit(visitor, args[i]);
-
+		// printf("%d\n", args[i]->type);
+		// printf("%s\n", args[i]->function_call_name);
+		// printf("%s\n", visited_ast->variable_name);
+		// AST_T* result_ast;
+		// if (visited_ast->type == AST_NOOP)
+        // {
+        //     result_ast = init_ast();
+        // }
 		switch(visited_ast->type)
 		{
 			case AST_STRING: printf("%s", visited_ast->string_value); break;
 			case AST_NUMBER: printf("%ld", visited_ast->number_value); break;
-			case AST_BOOL: printf("%s", visited_ast->string_value); break;
+			case AST_BOOL:
+				if (visited_ast->bool_value == true) visited_ast->string_value = "ՃՇՄԱՐԻՏ";
+				else visited_ast->string_value = "ԿԵՂԾ";
+				printf("%s", visited_ast->string_value);
+				break;
+			case AST_NOOP:  break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐՏՈՂ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -56,7 +74,11 @@ static AST_T* builtin_function_printnl(visitor_T* visitor, AST_T** args, int arg
 		{
 			case AST_STRING: printf("%s\n", visited_ast->string_value); break;
 			case AST_NUMBER: printf("%ld\n", visited_ast->number_value); break;
-			case AST_BOOL: printf("%s\n", visited_ast->string_value); break;
+			case AST_BOOL:
+				if (visited_ast->bool_value == true) visited_ast->string_value = "ՃՇՄԱՐԻՏ";
+				else visited_ast->string_value = "ԿԵՂԾ";
+				printf("%s\n", visited_ast->string_value);
+				break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐՆՏՈՂ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -66,6 +88,245 @@ static AST_T* builtin_function_printnl(visitor_T* visitor, AST_T** args, int arg
 	}
 	return init_ast(AST_NOOP);
 }
+
+// Թվաբանական գործողություններ
+
+static AST_T* builtin_function_add(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_NUMBER);
+	for (int i = 0; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_NUMBER:
+				result_ast->number_value += visited_ast->number_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ԳՈՒՄԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_sub(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_NUMBER);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_NUMBER:
+				result_ast->number_value -= visited_ast->number_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ՏԱՐԲԵՐՈՒԹՅՈՒՆ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_mult(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_NUMBER);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_NUMBER:
+				result_ast->number_value *= visited_ast->number_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ԱՐՏԱԴՐՅԱԼ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_div(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_NUMBER);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_NUMBER:
+				if (visited_ast->number_value == 0)
+				{
+					printf("\n======= ՍԽԱԼ =======\n");
+					printf("Թիվը `0`-ի բաժանման փորձ։\n");
+					exit(1);
+				}
+				result_ast->number_value /= visited_ast->number_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ԲԱԺԱՆՈՒՄ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_mod(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_NUMBER);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_NUMBER:
+				if (visited_ast->number_value == 0)
+				{
+					printf("\n======= ՍԽԱԼ =======\n");
+					printf("Թիվը `0`-ի բաժանման փորձ։\n");
+					exit(1);
+				}
+				result_ast->number_value %= visited_ast->number_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ՄՆԱՑՈՐԴ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+// Համեմատական գործողություններ
+
+static AST_T* builtin_function_equal(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	result_ast->string_value = visited_ast->string_value;
+	result_ast->bool_value = visited_ast->bool_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_STRING:
+				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) == 0;
+				break;
+			case AST_NUMBER:
+				result_ast->bool_value = result_ast->number_value == visited_ast->number_value;
+				break;
+			case AST_BOOL:
+				result_ast->bool_value = result_ast->bool_value == visited_ast->bool_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_greater(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	result_ast->string_value = visited_ast->string_value;
+	result_ast->bool_value = visited_ast->bool_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_STRING:
+				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) > 0;
+				break;
+			case AST_NUMBER:
+				result_ast->bool_value = result_ast->number_value > visited_ast->number_value;
+				break;
+			case AST_BOOL:
+				result_ast->bool_value = result_ast->bool_value > visited_ast->bool_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+static AST_T* builtin_function_less(visitor_T* visitor, AST_T** args, int args_size)
+{
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* visited_ast = visitor_visit(visitor, args[0]);
+	result_ast->number_value = visited_ast->number_value;
+	result_ast->string_value = visited_ast->string_value;
+	result_ast->bool_value = visited_ast->bool_value;
+	for (int i = 1; i < args_size; i++)
+	{
+		AST_T* visited_ast = visitor_visit(visitor, args[i]);
+		switch(visited_ast->type)
+		{
+			case AST_STRING:
+				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) < 0;
+				break;
+			case AST_NUMBER:
+				result_ast->bool_value = result_ast->number_value < visited_ast->number_value;
+				break;
+			case AST_BOOL:
+				result_ast->bool_value = result_ast->bool_value < visited_ast->bool_value;
+				break;
+			default:
+				printf("\n======= ՍԽԱԼ =======\n");
+        		printf("`ՓՈՔՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	        	exit(1);
+	        	break;
+		}
+	}
+	return result_ast;
+}
+
+// Գործառույթի արժեքի վերադարձ
+
+static AST_T* builtin_function_return(visitor_T* visitor, AST_T** args, int args_size)
+{
+    if (args_size != 1)
+    {
+        printf("\n======= ՍԽԱԼ =======\n");
+        printf("`ՎԵՐԱԴԱՐՁՐՈՒ` անունով գործառույթին փոխանցված է մեկից ավելի արգումենտ։\n");
+        exit(1);
+    }
+
+    AST_T* result_ast = visitor_visit(visitor, args[0]);
+    builtin_function_printl(visitor, args, args_size);
+    return result_ast;
+}
+
 
 visitor_T* init_visitor()
 {
@@ -84,16 +345,13 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
 		case AST_VARIABLE: return visitor_visit_variable(visitor, node); break;
 		case AST_VARIABLE_REASSIGNMENT: visitor_visit_variable(visitor,node); break;
 		case AST_FUNCTION_CALL: return visitor_visit_function_call(visitor, node); break;
-		case AST_FUNCTION_RETURN: return visitor_visit_function_return(visitor, node); break;
 		case AST_STRING: return visitor_visit_string(visitor, node); break;
 		case AST_NUMBER: return visitor_visit_number(visitor, node); break;
 		case AST_BOOL: return visitor_visit_boolean(visitor, node); break;
 		case AST_CONDITIONAL: return visitor_visit_condition(visitor, node); break;
-		case AST_EQUALITY: return visitor_visit_equality(visitor, node); break;
 		case AST_COMPOUND: return visitor_visit_compound(visitor, node); break;
 		case AST_NOOP: return node; break;
 	}
-
 	printf("\n======= ՍԽԱԼ =======\n");
 	printf("`%d` տիպին պատկանող անհայտ օպերատոր:\n", node->type);
 	exit(1);
@@ -125,16 +383,16 @@ AST_T* visitor_visit_function_definition(visitor_T* visitor, AST_T* node)
 
 AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
 {
-    scope_T* current_scope = visitor->scope;
-    AST_T* vdef = NULL;
+	scope_T* current_scope = visitor->scope;
+	AST_T* vdef = NULL;
 
-    while (current_scope != NULL)
-    {
-        vdef = scope_get_variable_definition(current_scope, node->variable_name);
-        if (vdef != NULL)
-            break;
-        current_scope = current_scope->parent;
-    }
+	while (current_scope != NULL)
+	{
+	    vdef = scope_get_variable_definition(current_scope, node->variable_name);
+	    if (vdef != NULL)
+	        break;
+	    current_scope = current_scope->parent;
+	}
 
     if (current_scope == NULL)
     {
@@ -151,8 +409,10 @@ AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
         }
         else if (vdef->type == AST_VARIABLE_REASSIGNMENT)
         {
+        	printf("%s\n", vdef->variable_name);
             AST_T* expr = visitor_visit(visitor, vdef->variable_reassignment_value);
             scope_add_variable_definition(visitor->scope, node);
+            // scope_reassign_variable(visitor->scope, node->variable_name, expr);
             return expr;
         }
     }
@@ -168,17 +428,30 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
     function_scope->parent = visitor->scope;
 
     if (strcmp(node->function_call_name, "ՏՊԻՐ") == 0)
-    {
         return builtin_function_print(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    }
     else if (strcmp(node->function_call_name, "ՏՊԻՐՏՈՂ") == 0)
-    {
         return builtin_function_printl(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    }
     else if (strcmp(node->function_call_name, "ՏՊԻՐՆՏՈՂ") == 0)
-    {
         return builtin_function_printnl(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    }
+    else if (strcmp(node->function_call_name, "ԳՈՒՄԱՐ") == 0)
+        return builtin_function_add(visitor, node->function_call_arguments, node->function_call_arguments_size);
+    else if (strcmp(node->function_call_name, "ՏԱՐԲԵՐՈՒԹՅՈՒՆ") == 0)
+        return builtin_function_sub(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ԱՐՏԱԴՐՅԱԼ") == 0)
+        return builtin_function_mult(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ԲԱԺԱՆՈՒՄ") == 0)
+        return builtin_function_div(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ՄՆԱՑՈՐԴ") == 0)
+        return builtin_function_mod(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ՀԱՎԱՍԱՐ") == 0)
+        return builtin_function_equal(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ՄԵԾ") == 0)
+        return builtin_function_greater(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ՓՈՔՐ") == 0)
+        return builtin_function_less(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	else if (strcmp(node->function_call_name, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
+        return builtin_function_return(visitor, node->function_call_arguments, node->function_call_arguments_size);
+
 
     AST_T* fdef = scope_get_function_definition(
         visitor->scope,
@@ -230,31 +503,6 @@ AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
     return result;
 }
 
-AST_T* visitor_visit_function_return(visitor_T* visitor, AST_T* node)
-{
-	// ========================================================================
-	// ========================== Շարունակելի =================================
-	// ========================================================================
-
-	// // AST_T* visited_ast = visitor_visit(visitor, node);
-    // // AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
-    // // function_return->function_return_expr = visitor_visit(visitor, node);
-    // // function_return->scope = node->scope;
-
-	// // return function_return;
-
-	// printf("here we are\n");
-	// return node;
-
-	AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
-    function_return->function_return_expr = visitor_visit(visitor, node->function_return_expr);
-    
-    function_return->scope = node->scope;
-
-    return function_return;
-}
-
-
 AST_T* visitor_visit_string(visitor_T* visitor, AST_T* node)
 {
 	return node;
@@ -272,21 +520,6 @@ AST_T* visitor_visit_boolean(visitor_T* visitor, AST_T* node)
 
 AST_T* visitor_visit_condition(visitor_T* visitor, AST_T* node)
 {
-    // AST_T* visited_condition = visitor_visit(visitor, node->conditional_condition);
-    // AST_T* visited_consequence = visitor_visit(visitor, node->conditional_consequence);
-    // if (visited_condition->type != AST_BOOL)
-    // {
-    //     printf("\n======= ՍԽԱԼ =======\n");
-    //     printf("Կենտրոնական հաստատուն տիպով անվավեր `IF` մեկնաբանություն:\n");
-    //     exit(1);
-    // }
-
-    // AST_T* visited_node = init_ast(AST_CONDITIONAL);
-    // visited_node->conditional_condition = visited_condition;
-    // visited_node->conditional_consequence = visited_consequence;
-
-    // return visited_node;
-
     AST_T* visited_condition = visitor_visit(visitor, node->conditional_condition);
 
 	if (visited_condition->type != AST_BOOL)
@@ -306,11 +539,6 @@ AST_T* visitor_visit_condition(visitor_T* visitor, AST_T* node)
 	}
 
 	return init_ast(AST_NOOP);
-}
-
-AST_T* visitor_visit_equality(visitor_T* visitor, AST_T* node)
-{
-
 }
 
 AST_T* visitor_visit_compound(visitor_T* visitor, AST_T* node)

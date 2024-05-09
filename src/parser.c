@@ -19,7 +19,7 @@ parser_T* init_parser(lexer_T* lexer)
 
 void parser_eat(parser_T* parser, int token_type)
 {
-	char *tokens[] = {"ՀԱՅ", "ՎԵՐԱԳՐԻՐ", "\"\"", ";", "«", "»", "ՍԿԻԶԲ", "ԱՎԱՐՏ", "և", "թիվ", "ԵԹԵ", "ԱՊԱ", "ՃՇՄԱՐԻՏ կամ ԿԵՂԾ"};
+	char *tokens[] = {"ՀԱՅ", "ՎԵՐԱԳՐԻՐ", "\"\"", ";", "«", "»", "ՍԿԻԶԲ", "ԱՎԱՐՏ", "և", "թիվ", "ԵԹԵ", "ԱՊԱ", "ԱՅԼԱՊԵՍ", "ՃՇՄԱՐԻՏ կամ ԿԵՂԾ", "ՎԵՐԱԴԱՐՁՐՈՒ"};
 	if (parser->current_token->type == token_type)
 	{
 		parser->prev_token = parser->current_token;
@@ -49,6 +49,7 @@ AST_T* parser_parse_statement(parser_T* parser, scope_T* scope)
 	{
 		case TOKEN_ID: return parser_parse_id(parser, scope);
 		case TOKEN_IF: return parser_parse_condition(parser, scope);
+		// case TOKEN_RETURN: return parser_parse_function_return(parser, scope);
 		// default: printf("here we go again\n");
 	}
 
@@ -90,9 +91,8 @@ AST_T* parser_parse_expr(parser_T* parser, scope_T* scope)
 		case TOKEN_STRING: return parser_parse_string(parser, scope);
         case TOKEN_NUMBER: return parser_parse_number(parser, scope);
         case TOKEN_BOOL: return parser_parse_boolean(parser, scope);
-        case TOKEN_EQUALITY: return parser_parse_equality(parser, scope);
 		case TOKEN_ID: return parser_parse_id(parser, scope);
-		default: printf("%d\n Unexpected token", parser->current_token->type);
+		// default: printf("%d\n Unexpected token", parser->current_token->type);
 	}
 
 	return init_ast(AST_NOOP);
@@ -145,20 +145,7 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
 {
 	parser_eat(parser, TOKEN_ID); // ՀԱՅ
 	char* variable_definition_variable_name = parser->current_token->value;
-	if (variable_definition_variable_name[0] >= '0' && variable_definition_variable_name[0] <= '9')
-	{
-		printf("\n======= ՍԽԱԼ =======\n");
-		printf("Փոփոխականի սխալ անվանում `%s`\n", variable_definition_variable_name); 
-		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
-		exit(1);
-	}
 
-	if (scope_check_variable(scope, variable_definition_variable_name)) {
-        printf("\n======= ՍԽԱԼ =======\n");
-        printf("Փոփոխական `%s`-ն արդեն սահմանված է:\n", variable_definition_variable_name);
-        printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
-        exit(1);
-    }
 	parser_eat(parser, TOKEN_ID);
 	parser_eat(parser, TOKEN_EQUALS);
 	AST_T* variable_definition_value = parser_parse_expr(parser, scope);
@@ -168,6 +155,7 @@ AST_T* parser_parse_variable_definition(parser_T* parser, scope_T* scope)
 	variable_definition->variable_definition_value = variable_definition_value;
 
 	scope_add_variable_definition(scope, variable_definition);
+	// variable_definition->scope = scope;
 
 	return variable_definition;
 }
@@ -189,12 +177,6 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 		printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
 		exit(1);
 	}
-	if (scope_check_function(scope, function_name)) {
-        printf("\n======= ՍԽԱԼ =======\n");
-        printf("Գործառույթ `%s`-ն արդեն սահմանված է:\n", function_name);
-        printf("Տող՝ « %d »\nՍյուն՝ « %d »\n", parser->lexer->line, parser->lexer->column - (parser->lexer->isArmenian / 2));
-        exit(1);
-    }
 	parser_eat(parser, TOKEN_ID);
 
 	parser_eat(parser, TOKEN_LPAREN);
@@ -231,25 +213,25 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 
 	parser_eat(parser, TOKEN_RBRACE);
 
-	// ast->scope = scope;
-	scope_add_function_definition(scope, ast);
+	ast->scope = scope;
+	// scope_add_function_definition(scope, ast);
 
 	return ast;
 }
 
-AST_T* parser_parse_function_return(parser_T* parser, scope_T* scope)
-{
-    parser_eat(parser, TOKEN_ID); // ՎԵՐԱԴԱՐՁՐՈՒ
-    AST_T* expr = parser_parse_expr(parser, scope);
+// AST_T* parser_parse_function_return(parser_T* parser, scope_T* scope)
+// {
+//     parser_eat(parser, TOKEN_RETURN);
+//     AST_T* expr = parser_parse_expr(parser, scope);
 
-    AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
-    function_return->function_return_expr = expr;
+//     AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
+//     function_return->function_return_expr = expr;
+// 	// printf("%s\n", function_return->function_return_expr->variable_name);
     
-    function_return->scope = scope;
+//     function_return->scope = scope;
 
-    return function_return;
-}
-
+//     return function_return;
+// }
 
 AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
 {
@@ -262,13 +244,12 @@ AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
     {
         parser_eat(parser, TOKEN_EQUALS);
         AST_T* expr = parser_parse_expr(parser, scope);
-
         AST_T* variable_reassignment = init_ast(AST_VARIABLE_REASSIGNMENT);
         variable_reassignment->variable_reassignment_name = token_value;
         variable_reassignment->variable_reassignment_value = expr;
 
         variable_reassignment->scope = scope;
-
+        // printf("%s\n", variable_reassignment->variable_reassignment_name);
         return variable_reassignment;
     }
 	
@@ -298,6 +279,8 @@ AST_T* parser_parse_number(parser_T* parser, scope_T* scope)
 	ast_number->number_value = atol(parser->current_token->value);
     parser_eat(parser, TOKEN_NUMBER);
     
+    ast_number->scope = scope;
+
     return ast_number;
 }
 
@@ -317,12 +300,9 @@ AST_T* parser_parse_boolean(parser_T* parser, scope_T* scope)
 
     parser_eat(parser, TOKEN_BOOL);
     
-    return ast_bool;
-}
+    ast_bool->scope = scope;
 
-AST_T* parser_parse_equality(parser_T* parser, scope_T* scope)
-{
-	printf("here we go again\n");
+    return ast_bool;
 }
 
 AST_T* parser_parse_condition(parser_T* parser, scope_T* scope)
@@ -353,7 +333,6 @@ AST_T* parser_parse_condition(parser_T* parser, scope_T* scope)
 		// 	parser_eat(parser, TOKEN_THEN);
 		// 	ast_condition->conditional_consequence = parser_parse_statements(parser, scope);
 		// }
-		// else
 		ast_condition->conditional_alternative = parser_parse_statements(parser, scope);
 	}
 	parser_eat(parser, TOKEN_RBRACE);
@@ -373,10 +352,10 @@ AST_T* parser_parse_id(parser_T* parser, scope_T* scope)
 	{
 		return parser_parse_function_definition(parser, scope);	
 	}
-	else if (strcmp(parser->current_token->value, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
-	{
-		return parser_parse_function_return(parser, scope);
-	}
+	// else if (strcmp(parser->current_token->value, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
+	// {
+	// 	return parser_parse_function_return(parser, scope);
+	// }
 	else
 	{
 		return parser_parse_variable(parser, scope);

@@ -16,7 +16,6 @@ typedef struct AST_STRUCT
 		AST_NUMBER,
 		AST_BOOL,
 		AST_CONDITIONAL,
-		AST_EQUALITY,
 		AST_COMPOUND,
 		AST_NOOP,
 	} type;
@@ -53,6 +52,10 @@ typedef struct AST_STRUCT
 
 	/* AST_NUMBER */
 	long number_value;
+
+	/* AST_ADD AST_SUB AST_DIV AST_MULT */
+	struct AST_STRUCT* left_node;
+	struct AST_STRUCT* right_node;
 
 	/* AST_BOOL */
 	bool bool_value;
