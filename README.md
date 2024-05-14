@@ -13,7 +13,6 @@ Hayasa-ն ծրագրավորման լեզու է, որի բաղկացուցիչ 
 - [Installation](#installation)
 - [Getting Started](#getting-started)
 - [Examples](#examples)
-- [Resources](#resources)
 - [Contributing](#contributing)
 
 ## Installation
