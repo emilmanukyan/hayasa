@@ -49,8 +49,6 @@ AST_T* parser_parse_statement(parser_T* parser, scope_T* scope)
 	{
 		case TOKEN_ID: return parser_parse_id(parser, scope);
 		case TOKEN_IF: return parser_parse_condition(parser, scope);
-		// case TOKEN_RETURN: return parser_parse_function_return(parser, scope);
-		// default: printf("here we go again\n");
 	}
 
 	return init_ast(AST_NOOP);
@@ -92,20 +90,9 @@ AST_T* parser_parse_expr(parser_T* parser, scope_T* scope)
         case TOKEN_NUMBER: return parser_parse_number(parser, scope);
         case TOKEN_BOOL: return parser_parse_boolean(parser, scope);
 		case TOKEN_ID: return parser_parse_id(parser, scope);
-		// default: printf("%d\n Unexpected token", parser->current_token->type);
 	}
 
 	return init_ast(AST_NOOP);
-}
-
-AST_T* parser_parse_factor(parser_T* parser, scope_T* scope)
-{
-
-}
-
-AST_T* parser_parse_term(parser_T* parser, scope_T* scope)
-{
-
 }
 
 AST_T* parser_parse_function_call(parser_T* parser, scope_T* scope)

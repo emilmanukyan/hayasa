@@ -52,7 +52,7 @@ static AST_T* builtin_function_printl(visitor_T* visitor, AST_T** args, int args
 				else visited_ast->string_value = "ԿԵՂԾ";
 				printf("%s", visited_ast->string_value);
 				break;
-			case AST_NOOP:  break;
+			// case AST_NOOP:  break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐՏՈՂ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -220,93 +220,111 @@ static AST_T* builtin_function_mod(visitor_T* visitor, AST_T** args, int args_si
 
 static AST_T* builtin_function_equal(visitor_T* visitor, AST_T** args, int args_size)
 {
-	AST_T* result_ast = init_ast(AST_BOOL);
-	AST_T* visited_ast = visitor_visit(visitor, args[0]);
-	result_ast->number_value = visited_ast->number_value;
-	result_ast->string_value = visited_ast->string_value;
-	result_ast->bool_value = visited_ast->bool_value;
-	for (int i = 1; i < args_size; i++)
+	if (args_size > 2)
 	{
-		AST_T* visited_ast = visitor_visit(visitor, args[i]);
-		switch(visited_ast->type)
-		{
-			case AST_STRING:
-				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) == 0;
-				break;
-			case AST_NUMBER:
-				result_ast->bool_value = result_ast->number_value == visited_ast->number_value;
-				break;
-			case AST_BOOL:
-				result_ast->bool_value = result_ast->bool_value == visited_ast->bool_value;
-				break;
-			default:
-				printf("\n======= ՍԽԱԼ =======\n");
-        		printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
-	        	exit(1);
-	        	break;
-		}
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտների քանակ:\n");
+		exit(1);
+	}
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* first_operand = visitor_visit(visitor, args[0]);
+	AST_T* second_operand = visitor_visit(visitor, args[1]);
+	// if (first_operand->type != second_operand->type)
+	// {
+	// 	printf("\n======= ՍԽԱԼ =======\n");
+	// 	printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	// 	exit(1);
+	// }
+	switch(first_operand->type)
+	{
+		case AST_STRING:
+			result_ast->bool_value = strcmp(first_operand->string_value, second_operand->string_value) == 0;
+			break;
+		case AST_NUMBER:
+			result_ast->bool_value = first_operand->number_value == second_operand->number_value;
+			break;
+		case AST_BOOL:
+			result_ast->bool_value = first_operand->bool_value == second_operand->bool_value;
+			break;
+		default:
+			printf("\n======= ՍԽԱԼ =======\n");
+			printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+			exit(1);
+			break;
 	}
 	return result_ast;
 }
 
 static AST_T* builtin_function_greater(visitor_T* visitor, AST_T** args, int args_size)
 {
-	AST_T* result_ast = init_ast(AST_BOOL);
-	AST_T* visited_ast = visitor_visit(visitor, args[0]);
-	result_ast->number_value = visited_ast->number_value;
-	result_ast->string_value = visited_ast->string_value;
-	result_ast->bool_value = visited_ast->bool_value;
-	for (int i = 1; i < args_size; i++)
+	if (args_size > 2)
 	{
-		AST_T* visited_ast = visitor_visit(visitor, args[i]);
-		switch(visited_ast->type)
-		{
-			case AST_STRING:
-				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) > 0;
-				break;
-			case AST_NUMBER:
-				result_ast->bool_value = result_ast->number_value > visited_ast->number_value;
-				break;
-			case AST_BOOL:
-				result_ast->bool_value = result_ast->bool_value > visited_ast->bool_value;
-				break;
-			default:
-				printf("\n======= ՍԽԱԼ =======\n");
-        		printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
-	        	exit(1);
-	        	break;
-		}
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* first_operand = visitor_visit(visitor, args[0]);
+	AST_T* second_operand = visitor_visit(visitor, args[1]);
+	// if (first_operand->type != second_operand->type)
+	// {
+	// 	printf("\n======= ՍԽԱԼ =======\n");
+	// 	printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+	// 	exit(1);
+	// }
+	switch(first_operand->type)
+	{
+		case AST_STRING:
+			result_ast->bool_value = strcmp(first_operand->string_value, second_operand->string_value) > 0;
+			break;
+		case AST_NUMBER:
+			result_ast->bool_value = first_operand->number_value > second_operand->number_value;
+			break;
+		case AST_BOOL:
+			result_ast->bool_value = first_operand->bool_value > second_operand->bool_value;
+			break;
+		default:
+			printf("\n======= ՍԽԱԼ =======\n");
+			printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+			exit(1);
+			break;
 	}
 	return result_ast;
 }
 
 static AST_T* builtin_function_less(visitor_T* visitor, AST_T** args, int args_size)
 {
-	AST_T* result_ast = init_ast(AST_BOOL);
-	AST_T* visited_ast = visitor_visit(visitor, args[0]);
-	result_ast->number_value = visited_ast->number_value;
-	result_ast->string_value = visited_ast->string_value;
-	result_ast->bool_value = visited_ast->bool_value;
-	for (int i = 1; i < args_size; i++)
+	if (args_size > 2)
 	{
-		AST_T* visited_ast = visitor_visit(visitor, args[i]);
-		switch(visited_ast->type)
-		{
-			case AST_STRING:
-				result_ast->bool_value = strcmp(result_ast->string_value, visited_ast->string_value) < 0;
-				break;
-			case AST_NUMBER:
-				result_ast->bool_value = result_ast->number_value < visited_ast->number_value;
-				break;
-			case AST_BOOL:
-				result_ast->bool_value = result_ast->bool_value < visited_ast->bool_value;
-				break;
-			default:
-				printf("\n======= ՍԽԱԼ =======\n");
-        		printf("`ՓՈՔՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
-	        	exit(1);
-	        	break;
-		}
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՓՈՔՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* first_operand = visitor_visit(visitor, args[0]);
+	AST_T* second_operand = visitor_visit(visitor, args[1]);
+	if (first_operand->type != second_operand->type)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՓՈՔՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	switch(first_operand->type)
+	{
+		case AST_STRING:
+			result_ast->bool_value = strcmp(first_operand->string_value, second_operand->string_value) < 0;
+			break;
+		case AST_NUMBER:
+			result_ast->bool_value = first_operand->number_value < second_operand->number_value;
+			break;
+		case AST_BOOL:
+			result_ast->bool_value = first_operand->bool_value < second_operand->bool_value;
+			break;
+		default:
+			printf("\n======= ՍԽԱԼ =======\n");
+			printf("`ՓՈՔՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+			exit(1);
+			break;
 	}
 	return result_ast;
 }
