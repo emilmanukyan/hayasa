@@ -20,6 +20,7 @@ static AST_T* builtin_function_print(visitor_T* visitor, AST_T** args, int args_
 				else visited_ast->string_value = "ԿԵՂԾ";
 				printf("%s", visited_ast->string_value);
 				break;
+			case AST_NOOP:  break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -52,7 +53,7 @@ static AST_T* builtin_function_printl(visitor_T* visitor, AST_T** args, int args
 				else visited_ast->string_value = "ԿԵՂԾ";
 				printf("%s", visited_ast->string_value);
 				break;
-			// case AST_NOOP:  break;
+			case AST_NOOP:  break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐՏՈՂ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -79,6 +80,7 @@ static AST_T* builtin_function_printnl(visitor_T* visitor, AST_T** args, int arg
 				else visited_ast->string_value = "ԿԵՂԾ";
 				printf("%s\n", visited_ast->string_value);
 				break;
+			case AST_NOOP:  break;
 			default:
 				printf("\n======= ՍԽԱԼ =======\n");
         		printf("`ՏՊԻՐՆՏՈՂ` անունով գործառույթի սխալ արգումենտների քանակ:\n");
@@ -229,12 +231,12 @@ static AST_T* builtin_function_equal(visitor_T* visitor, AST_T** args, int args_
 	AST_T* result_ast = init_ast(AST_BOOL);
 	AST_T* first_operand = visitor_visit(visitor, args[0]);
 	AST_T* second_operand = visitor_visit(visitor, args[1]);
-	// if (first_operand->type != second_operand->type)
-	// {
-	// 	printf("\n======= ՍԽԱԼ =======\n");
-	// 	printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
-	// 	exit(1);
-	// }
+	if (first_operand->type != second_operand->type && first_operand->type != AST_BOOL && second_operand->type != AST_BOOL)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
 	switch(first_operand->type)
 	{
 		case AST_STRING:
@@ -266,12 +268,12 @@ static AST_T* builtin_function_greater(visitor_T* visitor, AST_T** args, int arg
 	AST_T* result_ast = init_ast(AST_BOOL);
 	AST_T* first_operand = visitor_visit(visitor, args[0]);
 	AST_T* second_operand = visitor_visit(visitor, args[1]);
-	// if (first_operand->type != second_operand->type)
-	// {
-	// 	printf("\n======= ՍԽԱԼ =======\n");
-	// 	printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
-	// 	exit(1);
-	// }
+	if (first_operand->type != second_operand->type)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՄԵԾ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
 	switch(first_operand->type)
 	{
 		case AST_STRING:
