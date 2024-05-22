@@ -11,6 +11,7 @@ scope_T* init_scope()
 
     scope->variable_definitions = (void*) 0;
     scope->variable_definitions_size = 0;
+    scope->parent = NULL;
 
     return scope;
 }
@@ -74,16 +75,33 @@ AST_T* scope_add_variable_definition(scope_T* scope, AST_T* vdef)
     return vdef;
 }
 
+// AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
+// {
+//     for (int i = 0; i < scope->variable_definitions_size; i++)
+//     {
+//         AST_T* vdef = scope->variable_definitions[i];
+//         if (strcmp(vdef->variable_definition_variable_name, name) == 0)
+//         {
+//             return vdef;
+//         }
+//     }
+
+//     return (void*)0;
+// }
+
 AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
 {
     for (int i = 0; i < scope->variable_definitions_size; i++)
     {
-        AST_T* vdef = scope->variable_definitions[i];
-        if (strcmp(vdef->variable_definition_variable_name, name) == 0)
+        if (scope->variable_definitions[i] == NULL) {
+            printf("Variable at index %d is NULL\n", i);
+            continue;
+        }
+
+        if (strcmp(scope->variable_definitions[i]->variable_definition_variable_name, name) == 0)
         {
-            return vdef;
+            return scope->variable_definitions[i];
         }
     }
-
-    return (void*)0;
+    return NULL;
 }

@@ -19,6 +19,8 @@ AST_T* visitor_visit_function_definition(visitor_T* visitor, AST_T* node);
 
 AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node);
 
+AST_T* visitor_visit_variable_reassignment(visitor_T* visitor, AST_T* node);
+
 AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node);
 
 // AST_T* visitor_visit_function_return(visitor_T* visitor, AST_T* node);

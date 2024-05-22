@@ -236,7 +236,7 @@ AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
         variable_reassignment->variable_reassignment_value = expr;
 
         variable_reassignment->scope = scope;
-        // printf("%s\n", variable_reassignment->variable_reassignment_name);
+        // printf("%s\n", variable_reassignment->variable_reassignment_value->string_value);
         return variable_reassignment;
     }
 	

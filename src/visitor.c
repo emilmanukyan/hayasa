@@ -2,6 +2,9 @@
 #include "include/scope.h"
 #include <stdio.h>
 #include <string.h>
+#include <setjmp.h>
+
+jmp_buf jump_buffer;
 
 // Տպելու գործողություններ
 
@@ -294,6 +297,43 @@ static AST_T* builtin_function_greater(visitor_T* visitor, AST_T** args, int arg
 	return result_ast;
 }
 
+static AST_T* builtin_function_greater_equal(visitor_T* visitor, AST_T** args, int args_size)
+{
+	if (args_size > 2)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՄԵԾՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* first_operand = visitor_visit(visitor, args[0]);
+	AST_T* second_operand = visitor_visit(visitor, args[1]);
+	if (first_operand->type != second_operand->type)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՄԵԾՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	switch(first_operand->type)
+	{
+		case AST_STRING:
+			result_ast->bool_value = strcmp(first_operand->string_value, second_operand->string_value) >= 0;
+			break;
+		case AST_NUMBER:
+			result_ast->bool_value = first_operand->number_value >= second_operand->number_value;
+			break;
+		case AST_BOOL:
+			result_ast->bool_value = first_operand->bool_value >= second_operand->bool_value;
+			break;
+		default:
+			printf("\n======= ՍԽԱԼ =======\n");
+			printf("`ՄԵԾՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+			exit(1);
+			break;
+	}
+	return result_ast;
+}
+
 static AST_T* builtin_function_less(visitor_T* visitor, AST_T** args, int args_size)
 {
 	if (args_size > 2)
@@ -331,6 +371,43 @@ static AST_T* builtin_function_less(visitor_T* visitor, AST_T** args, int args_s
 	return result_ast;
 }
 
+static AST_T* builtin_function_less_equal(visitor_T* visitor, AST_T** args, int args_size)
+{
+	if (args_size > 2)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՓՈՔՐՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	AST_T* result_ast = init_ast(AST_BOOL);
+	AST_T* first_operand = visitor_visit(visitor, args[0]);
+	AST_T* second_operand = visitor_visit(visitor, args[1]);
+	if (first_operand->type != second_operand->type)
+	{
+		printf("\n======= ՍԽԱԼ =======\n");
+		printf("`ՓՈՔՐՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+		exit(1);
+	}
+	switch(first_operand->type)
+	{
+		case AST_STRING:
+			result_ast->bool_value = strcmp(first_operand->string_value, second_operand->string_value) <= 0;
+			break;
+		case AST_NUMBER:
+			result_ast->bool_value = first_operand->number_value <= second_operand->number_value;
+			break;
+		case AST_BOOL:
+			result_ast->bool_value = first_operand->bool_value <= second_operand->bool_value;
+			break;
+		default:
+			printf("\n======= ՍԽԱԼ =======\n");
+			printf("`ՓՈՔՐՀԱՎԱՍԱՐ` անունով գործառույթին փոխանցված սխալ արգումենտներ:\n");
+			exit(1);
+			break;
+	}
+	return result_ast;
+}
+
 // Գործառույթի արժեքի վերադարձ
 
 static AST_T* builtin_function_return(visitor_T* visitor, AST_T** args, int args_size)
@@ -343,7 +420,8 @@ static AST_T* builtin_function_return(visitor_T* visitor, AST_T** args, int args
     }
 
     AST_T* result_ast = visitor_visit(visitor, args[0]);
-    builtin_function_printl(visitor, args, args_size);
+    builtin_function_print(visitor, args, args_size);
+	longjmp(jump_buffer, 1);
     return result_ast;
 }
 
@@ -363,7 +441,7 @@ AST_T* visitor_visit(visitor_T* visitor, AST_T* node)
 		case AST_VARIABLE_DEFINITION: return visitor_visit_variable_definition(visitor, node); break;
 		case AST_FUNCTION_DEFINITION: return visitor_visit_function_definition(visitor, node); break;
 		case AST_VARIABLE: return visitor_visit_variable(visitor, node); break;
-		case AST_VARIABLE_REASSIGNMENT: visitor_visit_variable(visitor,node); break;
+		case AST_VARIABLE_REASSIGNMENT: visitor_visit_variable_reassignment(visitor,node); break;
 		case AST_FUNCTION_CALL: return visitor_visit_function_call(visitor, node); break;
 		case AST_STRING: return visitor_visit_string(visitor, node); break;
 		case AST_NUMBER: return visitor_visit_number(visitor, node); break;
@@ -427,14 +505,14 @@ AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
         {
             return visitor_visit(visitor, vdef->variable_definition_value);
         }
-        else if (vdef->type == AST_VARIABLE_REASSIGNMENT)
-        {
-        	printf("%s\n", vdef->variable_name);
-            AST_T* expr = visitor_visit(visitor, vdef->variable_reassignment_value);
-            scope_add_variable_definition(visitor->scope, node);
-            // scope_reassign_variable(visitor->scope, node->variable_name, expr);
-            return expr;
-        }
+        // else if (vdef->type == AST_VARIABLE_REASSIGNMENT)
+        // {
+        // 	// printf("%s\n", vdef->variable_name);
+        //     // AST_T* expr = visitor_visit(visitor, vdef->variable_reassignment_value);
+        //     // scope_add_variable_definition(visitor->scope, node);
+        //     // return expr;
+        //     return visitor_visit(visitor, vdef->variable_reassignment_value);
+        // }
     }
 
     printf("\n======= ՍԽԱԼ =======\n");
@@ -442,85 +520,121 @@ AST_T* visitor_visit_variable(visitor_T* visitor, AST_T* node)
     exit(1);
 }
 
+AST_T* visitor_visit_variable_reassignment(visitor_T* visitor, AST_T* node)
+{
+    if (node == NULL) {
+        printf("Error: Attempted to reassign a NULL variable node\n");
+        return NULL;
+    }
+
+    if (node->variable_name == NULL) {
+        printf("Error: Attempted to reassign a variable with a NULL name\n");
+        return NULL;
+    }
+
+    printf("Reassigning variable: %s\n", node->variable_name);
+    AST_T* vdef = visitor_visit_variable(visitor, node);
+    if (vdef != NULL)
+    {
+        vdef->variable_definition_value = node->variable_reassignment_value;
+        return vdef;
+    }
+
+    printf("\n======= ՍԽԱԼ =======\n");
+    printf("Փոփոխականը `%s` սահմանված չէ:\n", node->variable_name);
+    exit(1);
+
+    return init_ast(AST_NOOP);
+}
+
 AST_T* visitor_visit_function_call(visitor_T* visitor, AST_T* node)
 {
-    scope_T* function_scope = init_scope();
-    function_scope->parent = visitor->scope;
-
-    if (strcmp(node->function_call_name, "ՏՊԻՐ") == 0)
-        return builtin_function_print(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    else if (strcmp(node->function_call_name, "ՏՊԻՐՏՈՂ") == 0)
-        return builtin_function_printl(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    else if (strcmp(node->function_call_name, "ՏՊԻՐՆՏՈՂ") == 0)
-        return builtin_function_printnl(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    else if (strcmp(node->function_call_name, "ԳՈՒՄԱՐ") == 0)
-        return builtin_function_add(visitor, node->function_call_arguments, node->function_call_arguments_size);
-    else if (strcmp(node->function_call_name, "ՏԱՐԲԵՐՈՒԹՅՈՒՆ") == 0)
-        return builtin_function_sub(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ԱՐՏԱԴՐՅԱԼ") == 0)
-        return builtin_function_mult(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ԲԱԺԱՆՈՒՄ") == 0)
-        return builtin_function_div(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ՄՆԱՑՈՐԴ") == 0)
-        return builtin_function_mod(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ՀԱՎԱՍԱՐ") == 0)
-        return builtin_function_equal(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ՄԵԾ") == 0)
-        return builtin_function_greater(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ՓՈՔՐ") == 0)
-        return builtin_function_less(visitor, node->function_call_arguments, node->function_call_arguments_size);
-	else if (strcmp(node->function_call_name, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
-        return builtin_function_return(visitor, node->function_call_arguments, node->function_call_arguments_size);
-
-
-    AST_T* fdef = scope_get_function_definition(
-        visitor->scope,
-        node->function_call_name
-    );
-
-    if (fdef == NULL)
+	if (setjmp(jump_buffer) == 0)
     {
-        printf("\n======= ՍԽԱԼ =======\n");
-        printf("Անհայտ գործառույթ `%s` անունով:\n", node->function_call_name);
-        exit(1);
+	    scope_T* function_scope = init_scope();
+	    function_scope->parent = visitor->scope;
+
+	    if (strcmp(node->function_call_name, "ՏՊԻՐ") == 0)
+	        return builtin_function_print(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	    else if (strcmp(node->function_call_name, "ՏՊԻՐՏՈՂ") == 0)
+	        return builtin_function_printl(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	    else if (strcmp(node->function_call_name, "ՏՊԻՐՆՏՈՂ") == 0)
+	        return builtin_function_printnl(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	    else if (strcmp(node->function_call_name, "ԳՈՒՄԱՐ") == 0)
+	        return builtin_function_add(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	    else if (strcmp(node->function_call_name, "ՏԱՐԲԵՐՈՒԹՅՈՒՆ") == 0)
+	        return builtin_function_sub(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ԱՐՏԱԴՐՅԱԼ") == 0)
+	        return builtin_function_mult(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ԲԱԺԱՆՈՒՄ") == 0)
+	        return builtin_function_div(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՄՆԱՑՈՐԴ") == 0)
+	        return builtin_function_mod(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՀԱՎԱՍԱՐ") == 0)
+	        return builtin_function_equal(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՄԵԾ") == 0)
+	        return builtin_function_greater(visitor, node->function_call_arguments, node->function_call_arguments_size);
+	    else if (strcmp(node->function_call_name, "ՄԵԾՀԱՎԱՍԱՐ") == 0)
+	        return builtin_function_greater_equal(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՓՈՔՐ") == 0)
+	        return builtin_function_less(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՓՈՔՐՀԱՎԱՍԱՐ") == 0)
+	        return builtin_function_less_equal(visitor, node->function_call_arguments, node->function_call_arguments_size);
+		else if (strcmp(node->function_call_name, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
+	        return builtin_function_return(visitor, node->function_call_arguments, node->function_call_arguments_size);
+
+
+	    AST_T* fdef = scope_get_function_definition(
+	        visitor->scope,
+	        node->function_call_name
+	    );
+
+	    if (fdef == NULL)
+	    {
+	        printf("\n======= ՍԽԱԼ =======\n");
+	        printf("Անհայտ գործառույթ `%s` անունով:\n", node->function_call_name);
+	        exit(1);
+	    }
+
+	    visitor->scope = function_scope;
+
+	    if (fdef->function_definition_args_size > 0)
+	    {
+	        if (fdef->function_definition_args_size != node->function_call_arguments_size)
+	        {
+	            printf("\n======= ՍԽԱԼ =======\n");
+	            printf("`%s` անունով գործառույթի սխալ արգումենտների քանակ:\n", node->function_call_name);
+	            exit(1);
+	        }
+	        for (int i = 0; i < (int)fdef->function_definition_args_size; i++)
+	        {
+	            AST_T* ast_var = (AST_T*)fdef->function_definition_args[i];
+
+	            AST_T* ast_value = (AST_T*)node->function_call_arguments[i];
+
+	            if (ast_value->type == AST_VARIABLE)
+	                ast_value = visitor_visit_variable(visitor, ast_value);
+
+	            AST_T* ast_vardef = init_ast(AST_VARIABLE_DEFINITION);
+
+	            ast_vardef->variable_definition_value = ast_value;
+	            ast_vardef->variable_definition_variable_name = (char*)calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
+	            strcpy(ast_vardef->variable_definition_variable_name, ast_var->variable_name);
+
+	            scope_add_variable_definition(function_scope, ast_vardef);
+	        }
+	    }
+
+	    AST_T* result = visitor_visit(visitor, fdef->function_definition_body);
+
+	    visitor->scope = function_scope->parent;
+
+	    free(function_scope);
+
+    	return result;
     }
-
-    visitor->scope = function_scope;
-
-    if (fdef->function_definition_args_size > 0)
-    {
-        if (fdef->function_definition_args_size != node->function_call_arguments_size)
-        {
-            printf("\n======= ՍԽԱԼ =======\n");
-            printf("`%s` անունով գործառույթի սխալ արգումենտների քանակ:\n", node->function_call_name);
-            exit(1);
-        }
-        for (int i = 0; i < (int)fdef->function_definition_args_size; i++)
-        {
-            AST_T* ast_var = (AST_T*)fdef->function_definition_args[i];
-
-            AST_T* ast_value = (AST_T*)node->function_call_arguments[i];
-
-            if (ast_value->type == AST_VARIABLE)
-                ast_value = visitor_visit_variable(visitor, ast_value);
-
-            AST_T* ast_vardef = init_ast(AST_VARIABLE_DEFINITION);
-
-            ast_vardef->variable_definition_value = ast_value;
-            ast_vardef->variable_definition_variable_name = (char*)calloc(strlen(ast_var->variable_name) + 1, sizeof(char));
-            strcpy(ast_vardef->variable_definition_variable_name, ast_var->variable_name);
-
-            scope_add_variable_definition(function_scope, ast_vardef);
-        }
-    }
-
-    AST_T* result = visitor_visit(visitor, fdef->function_definition_body);
-
-    visitor->scope = function_scope->parent;
-
-    free(function_scope);
-
-    return result;
+    else
+        return init_ast(AST_NOOP);
 }
 
 AST_T* visitor_visit_string(visitor_T* visitor, AST_T* node)
