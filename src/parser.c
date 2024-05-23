@@ -206,20 +206,6 @@ AST_T* parser_parse_function_definition(parser_T* parser, scope_T* scope)
 	return ast;
 }
 
-// AST_T* parser_parse_function_return(parser_T* parser, scope_T* scope)
-// {
-//     parser_eat(parser, TOKEN_RETURN);
-//     AST_T* expr = parser_parse_expr(parser, scope);
-
-//     AST_T* function_return = init_ast(AST_FUNCTION_RETURN);
-//     function_return->function_return_expr = expr;
-// 	// printf("%s\n", function_return->function_return_expr->variable_name);
-    
-//     function_return->scope = scope;
-
-//     return function_return;
-// }
-
 AST_T* parser_parse_variable(parser_T* parser, scope_T* scope)
 {
 	char* token_value = parser->current_token->value;
@@ -339,10 +325,6 @@ AST_T* parser_parse_id(parser_T* parser, scope_T* scope)
 	{
 		return parser_parse_function_definition(parser, scope);	
 	}
-	// else if (strcmp(parser->current_token->value, "ՎԵՐԱԴԱՐՁՐՈՒ") == 0)
-	// {
-	// 	return parser_parse_function_return(parser, scope);
-	// }
 	else
 	{
 		return parser_parse_variable(parser, scope);

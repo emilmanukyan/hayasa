@@ -7,6 +7,9 @@
 typedef struct VISITOR_STRUCT
 {
 	scope_T* scope;
+	int return_flag;
+    AST_T* return_value;
+    int recursion_depth;
 } visitor_T;
 
 visitor_T* init_visitor();

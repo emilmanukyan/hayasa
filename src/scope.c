@@ -33,25 +33,41 @@ AST_T* scope_add_function_definition(scope_T* scope, AST_T* fdef)
             );
     }
 
-    scope->function_definitions[scope->function_definitions_size-1] =
-        fdef;
+    scope->function_definitions[scope->function_definitions_size-1] = fdef;
 
     return fdef;
 }
 
+// AST_T* scope_get_function_definition(scope_T* scope, const char* fname)
+// {
+//     for (int i = 0; i < scope->function_definitions_size; i++)
+//     {
+//         AST_T* fdef = scope->function_definitions[i];
+
+//         if (strcmp(fdef->function_definition_name, fname) == 0)
+//         {
+//             return fdef;
+//         }
+//     }
+
+//     return (void*)0;
+// }
 AST_T* scope_get_function_definition(scope_T* scope, const char* fname)
 {
-    for (int i = 0; i < scope->function_definitions_size; i++)
+    while (scope != NULL)
     {
-        AST_T* fdef = scope->function_definitions[i];
-
-        if (strcmp(fdef->function_definition_name, fname) == 0)
+        for (int i = 0; i < scope->function_definitions_size; i++)
         {
-            return fdef;
+            AST_T* fdef = scope->function_definitions[i];
+            if (strcmp(fdef->function_definition_name, fname) == 0)
+            {
+                return fdef;
+            }
         }
+        scope = scope->parent;
     }
 
-    return (void*)0;
+    return NULL;
 }
 
 AST_T* scope_add_variable_definition(scope_T* scope, AST_T* vdef)
@@ -94,7 +110,7 @@ AST_T* scope_get_variable_definition(scope_T* scope, const char* name)
     for (int i = 0; i < scope->variable_definitions_size; i++)
     {
         if (scope->variable_definitions[i] == NULL) {
-            printf("Variable at index %d is NULL\n", i);
+            printf("՝%d՝ ինդեքսով փոփոխականը NULL է։\n", i);
             continue;
         }
 
